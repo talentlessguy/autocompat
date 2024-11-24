@@ -1,0 +1,11 @@
+{
+  "name": "autocompat",
+  "type": "module",
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/node": "^22.9.3"
+  },
+  "dependencies": {
+    "spektr": "^0.1.1"
+  }
+}
