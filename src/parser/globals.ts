@@ -1,17 +1,33 @@
 import { readFileSync } from 'node:fs'
+import ASTMetadataInferer from 'ast-metadata-inferer'
 import { type Expression, type Statement, parseSync } from 'oxc-parser'
-import { ecmaBuiltins, nodeSupportedGlobals } from '../utils/apis'
+
+const finalFeatureVersion = (
+	compat:
+		| { version_added: string }
+		| { version_added: string; flags?: string[] }[],
+) => {
+	if (Array.isArray(compat)) {
+		return compat.find((el) => !el.flags)?.version_added!
+	}
+	return compat.version_added
+}
 
 export const parseGlobals = (file: string) => {
 	const source = readFileSync(file, 'utf-8')
 	const { program } = parseSync(source)
 
-	const globals = new Set<string>()
+	const globals = new Map<string, string>()
 	const declaredVariables = new Set<string>()
 
 	const addToGlobals = (name: string) => {
-		if (ecmaBuiltins.includes(name) || nodeSupportedGlobals.includes(name))
-			globals.add(name)
+		const metadata = (ASTMetadataInferer as any[]).find(
+			(metadata) => metadata.protoChainId === name,
+		)
+		if (metadata) {
+			if (metadata.compat.support.nodejs)
+				globals.set(name, finalFeatureVersion(metadata.compat.support.nodejs))
+		}
 	}
 
 	const traverse = (node: Statement | Expression) => {

@@ -8,9 +8,9 @@ importers:
 
   .:
     dependencies:
-      '@mdn/browser-compat-data':
-        specifier: ^5.6.18
-        version: 5.6.18
+      ast-metadata-inferer:
+        specifier: ^0.8.0
+        version: 0.8.0
       oxc-parser:
         specifier: ^0.37.0
         version: 0.37.0
@@ -21,6 +21,9 @@ importers:
       '@biomejs/biome':
         specifier: ^1.9.4
         version: 1.9.4
+      '@types/caniuse-lite':
+        specifier: ^1.0.5
+        version: 1.0.5
       '@types/node':
         specifier: ^22.9.3
         version: 22.9.3
@@ -126,6 +129,9 @@ packages:
   '@oxc-project/types@0.37.0':
     resolution: {integrity: sha512-9shvIr/cpoNo5cX8nWdZmviHLJSidjZy4M0MyfR6ucREZBtABTNBIa1a4emWUJ3qAMwJW6G1v0zm8K2rj9Pf4A==}
 
+  '@types/caniuse-lite@1.0.5':
+    resolution: {integrity: sha512-ff4yGviVi4PrDKkCZJixHjYrgQG3kv/peiSCBabyZR+fXezFTYuS4uVOiRRzRqVxCEZT3ityfuAPuYa0usobKw==}
+
   '@types/node@22.9.3':
     resolution: {integrity: sha512-F3u1fs/fce3FFk+DAxbxc78DF8x0cY09RRL8GnXLmkJ1jvx3TtPdWoTT5/NiYfI5ASqXBmfqJi9dZ3gxMx4lzw==}
 
@@ -139,6 +145,9 @@ packages:
   ansi-styles@4.3.0:
     resolution: {integrity: sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==}
     engines: {node: '>=8'}
+
+  ast-metadata-inferer@0.8.0:
+    resolution: {integrity: sha512-jOMKcHht9LxYIEQu+RVd22vtgrPaVCtDRQ/16IGmurdzxvYbDd5ynxjnyrzLnieG96eTcAyaoj/wN/4/1FyyeA==}
 
   astral-regex@2.0.0:
     resolution: {integrity: sha512-Z7tMw1ytTXt5jqMcOP+OQteU1VuNK9Y02uuJtKQ1Sv69jXQKKg5cibLwGJow8yzZP+eAc18EmLGPal0bp36rvQ==}
@@ -271,6 +280,8 @@ snapshots:
 
   '@oxc-project/types@0.37.0': {}
 
+  '@types/caniuse-lite@1.0.5': {}
+
   '@types/node@22.9.3':
     dependencies:
       undici-types: 6.19.8
@@ -287,6 +298,10 @@ snapshots:
   ansi-styles@4.3.0:
     dependencies:
       color-convert: 2.0.1
+
+  ast-metadata-inferer@0.8.0:
+    dependencies:
+      '@mdn/browser-compat-data': 5.6.18
 
   astral-regex@2.0.0: {}
 

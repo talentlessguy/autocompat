@@ -3,10 +3,11 @@
   "type": "module",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
+    "@types/caniuse-lite": "^1.0.5",
     "@types/node": "^22.9.3"
   },
   "dependencies": {
-    "@mdn/browser-compat-data": "^5.6.18",
+    "ast-metadata-inferer": "^0.8.0",
     "oxc-parser": "^0.37.0",
     "spektr": "^0.1.1"
   }

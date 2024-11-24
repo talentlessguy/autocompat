@@ -37,7 +37,7 @@ type LanguageFeature = {
 	passed: boolean
 }
 
-export const getESData = async (
+export const findEsFeature = async (
 	feature: string,
 ): Promise<LanguageFeature[]> => {
 	const search: Array<LanguageFeature> = Object.entries(result)
