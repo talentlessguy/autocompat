@@ -1,9 +1,10 @@
+import { basename } from 'node:path'
 import { CLI } from 'spektr'
 import {
 	crawlDependencies,
 	findClosestPkgJsonPath,
 	getPackageFiles,
-} from './utils'
+} from './utils/crawl'
 
 const cli = new CLI({ name: 'autocompat' })
 
@@ -19,7 +20,7 @@ cli.command(
 		const dependencyMetadatas = crawlDependencies(packageJsonPath, crawlLimit)
 
 		for (const dep of dependencyMetadatas) {
-			getPackageFiles(dep.pkgDir)
+			console.log(basename(dep.pkgDir), getPackageFiles(dep.pkgDir))
 		}
 	},
 	{
