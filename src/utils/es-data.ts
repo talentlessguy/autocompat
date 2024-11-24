@@ -1,3 +1,5 @@
+import { readFile, writeFile } from 'node:fs/promises'
+
 interface ESResult {
 	_successful: number
 	_count: number
@@ -9,20 +11,36 @@ type NodeTestResult = {
 	_engine: string
 } & Record<string, ESResult & Record<string, boolean | string>>
 
-export const getESData = async (feature: string) => {
-	const url = `https://raw.githubusercontent.com/williamkapke/node-compat-table/gh-pages/results/v8/${process.versions.node}.json`
+const loadData = async () => {
+	let result: NodeTestResult
+	try {
+		result = JSON.parse(await readFile('./result.json', 'utf-8'))
+	} catch {
+		const url = `https://raw.githubusercontent.com/williamkapke/node-compat-table/gh-pages/results/v8/${process.versions.node}.json`
 
-	const res = await fetch(url)
+		const res = await fetch(url)
 
-	const result = (await res.json()) as NodeTestResult
+		result = (await res.json()) as NodeTestResult
 
-	const search: Array<{
-		esVersion: string
-		featureType: string
-		category: string
-		feature: string
-		passed: boolean
-	}> = Object.entries(result)
+		await writeFile('./result.json', JSON.stringify(result, null, 2))
+	}
+	return result
+}
+
+const result = await loadData()
+
+type LanguageFeature = {
+	esVersion: string
+	featureType: string
+	category: string
+	feature: string
+	passed: boolean
+}
+
+export const getESData = async (
+	feature: string,
+): Promise<LanguageFeature[]> => {
+	const search: Array<LanguageFeature> = Object.entries(result)
 		.filter(([key]) => !key.startsWith('_'))
 		.reverse()
 		.flatMap(([version, info]) =>
@@ -41,7 +59,5 @@ export const getESData = async (feature: string) => {
 				}),
 		)
 
-	return search[0]
+	return search.filter((el) => el.feature === 'basic support')
 }
-
-console.log(await getESData('await'))

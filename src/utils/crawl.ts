@@ -11,7 +11,7 @@ type PackageManifest = {
 	files?: string[]
 }
 
-type DependencyMetadata = {
+export type DependencyMetadata = {
 	pkgDir: string
 	pkgGraphPath: string[]
 	pkgVersion: string
@@ -105,14 +105,14 @@ export function findPkgJsonPath(pkgName: string, basedir: string) {
 	return undefined
 }
 
-const validExtensions = ['js', 'd.ts', 'mjs', 'cjs', 'json']
+const validExtensions = ['js', 'mjs', 'cjs', 'json']
 
 export function getPackageFiles(dir: string) {
-	const files = fs.readdirSync(dir, { recursive: true })
+	const files = fs.readdirSync(dir, { recursive: true, withFileTypes: true })
 
 	const filteredFiles = files.filter((file) =>
-		validExtensions.some((ext) => (file as string).endsWith(ext)),
+		validExtensions.some((ext) => file.name.endsWith(ext)),
 	)
 
-	return filteredFiles
+	return filteredFiles.map((file) => path.join(file.parentPath, file.name))
 }

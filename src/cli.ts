@@ -1,16 +1,12 @@
-import { basename } from 'node:path'
 import { CLI } from 'spektr'
-import {
-	crawlDependencies,
-	findClosestPkgJsonPath,
-	getPackageFiles,
-} from './utils/crawl'
+import { scanFiles } from '.'
+import { crawlDependencies, findClosestPkgJsonPath } from './utils/crawl'
 
 const cli = new CLI({ name: 'autocompat' })
 
 cli.command(
 	'crawl',
-	(_, { limit }) => {
+	async (_, { limit }) => {
 		const packageJsonPath = findClosestPkgJsonPath(process.cwd())
 		const crawlLimit = limit ? Number.parseInt(limit) : Number.POSITIVE_INFINITY
 		if (!packageJsonPath) {
@@ -19,9 +15,7 @@ cli.command(
 		}
 		const dependencyMetadatas = crawlDependencies(packageJsonPath, crawlLimit)
 
-		for (const dep of dependencyMetadatas) {
-			console.log(basename(dep.pkgDir), getPackageFiles(dep.pkgDir))
-		}
+		await scanFiles(dependencyMetadatas)
 	},
 	{
 		options: [
