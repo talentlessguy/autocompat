@@ -5,7 +5,6 @@ type PackageManifest = {
 	name: string
 	version: string
 	dependencies?: Record<string, string>
-	devDependencies?: Record<string, string>
 	main?: string
 	module?: string
 	files?: string[]
@@ -24,7 +23,7 @@ export function crawlDependencies(
 ): DependencyMetadata[] {
 	const metadatas: DependencyMetadata[] = []
 
-	crawl(path.dirname(pkgJsonPath), [], true)
+	crawl(path.dirname(pkgJsonPath), [])
 
 	if (limit != null && metadatas.length >= limit) {
 		return metadatas.slice(0, limit)
@@ -40,17 +39,13 @@ export function crawlDependencies(
 
 	return metadatas
 
-	function crawl(pkgDir: string, parentDepNames: string[], isRoot = false) {
+	function crawl(pkgDir: string, parentDepNames: string[]) {
 		const pkgJsonContent = fs.readFileSync(
 			path.join(pkgDir, 'package.json'),
 			'utf8',
 		)
 		const pkgJson = JSON.parse(pkgJsonContent)
 		const pkgDependencies = Object.keys(pkgJson.dependencies || {})
-
-		if (isRoot) {
-			pkgDependencies.push(...Object.keys(pkgJson.devDependencies || {}))
-		}
 
 		for (const depName of pkgDependencies) {
 			// Prevent dep loop
@@ -110,8 +105,11 @@ const validExtensions = ['js', 'mjs', 'cjs', 'json']
 export function getPackageFiles(dir: string) {
 	const files = fs.readdirSync(dir, { recursive: true, withFileTypes: true })
 
-	const filteredFiles = files.filter((file) =>
-		validExtensions.some((ext) => file.name.endsWith(ext)),
+	const filteredFiles = files.filter(
+		(file) =>
+			file.isFile() &&
+			validExtensions.some((ext) => file.name.endsWith(ext)) &&
+			file.name !== 'tsconfig.json',
 	)
 
 	return filteredFiles.map((file) => path.join(file.parentPath, file.name))

@@ -8,6 +8,7 @@ cli.command(
 	'crawl',
 	async (_, { limit }) => {
 		const packageJsonPath = findClosestPkgJsonPath(process.cwd())
+		console.log(`Found package.json at ${packageJsonPath}`)
 		const crawlLimit = limit ? Number.parseInt(limit) : Number.POSITIVE_INFINITY
 		if (!packageJsonPath) {
 			console.error(`No closest package.json found from ${process.cwd()}`)
