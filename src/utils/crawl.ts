@@ -100,7 +100,7 @@ export function findPkgJsonPath(pkgName: string, basedir: string) {
 	return undefined
 }
 
-const validExtensions = ['js', 'mjs', 'cjs', 'json']
+const validExtensions = ['js', 'mjs', 'cjs']
 
 export function getPackageFiles(dir: string) {
 	const files = fs.readdirSync(dir, { recursive: true, withFileTypes: true })
