@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@mdn/browser-compat-data':
+        specifier: ^6.0.6
+        version: 6.0.6
       ast-metadata-inferer:
         specifier: ^0.8.0
         version: 0.8.0
@@ -85,6 +88,9 @@ packages:
 
   '@mdn/browser-compat-data@5.6.18':
     resolution: {integrity: sha512-WCQcQGyydquw7NXPL2NopMCgmUvIQDG7KM/IGR4PMJSDH5SHZKXUDEF6rdpGWj0MtcjQseOCl/hjzYzj0fMMeA==}
+
+  '@mdn/browser-compat-data@6.0.6':
+    resolution: {integrity: sha512-awlDnCGbtdkyLieMpIKJQEgK7mxnL3he4UHm5AGn+asofiemlx4LVHM0FsYmp6O1irAClPNS135zZLhD2SZi+A==}
 
   '@oxc-parser/binding-darwin-arm64@0.37.0':
     resolution: {integrity: sha512-YO1m7YyBCSbjSYviEvwGOuyM3uy7SG+fQax89PfmG3PVEtY4we4RgnD2wB8k/HVj0TFcvASFchdF/86k9vBUZg==}
@@ -253,6 +259,8 @@ snapshots:
     optional: true
 
   '@mdn/browser-compat-data@5.6.18': {}
+
+  '@mdn/browser-compat-data@6.0.6': {}
 
   '@oxc-parser/binding-darwin-arm64@0.37.0':
     optional: true

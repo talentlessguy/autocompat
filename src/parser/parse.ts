@@ -1,23 +1,15 @@
 import { readFileSync } from 'node:fs'
-import ASTMetadataInferer from 'ast-metadata-inferer'
+import BCD from '@mdn/browser-compat-data' with { type: 'json' }
+import ASTMetadataInferer from 'ast-metadata-inferer' with { type: 'json' }
 import { type Expression, type Statement, parseSync } from 'oxc-parser'
+import { finalFeatureVersion } from '../utils/bcd'
 
-const finalFeatureVersion = (
-	compat:
-		| { version_added: string }
-		| { version_added: string; flags?: string[] }[],
-) => {
-	if (Array.isArray(compat)) {
-		return compat.find((el) => !el.flags)?.version_added!
-	}
-	return compat.version_added
-}
-
-export const parseGlobals = (file: string) => {
+export const parseCode = (file: string) => {
 	const source = readFileSync(file, 'utf-8')
 	const { program } = parseSync(source)
 
 	const globals = new Map<string, string>()
+	const languageFeatures = new Map<string, string>()
 	const declaredVariables = new Set<string>()
 
 	const addToGlobals = (name: string) => {
@@ -67,6 +59,13 @@ export const parseGlobals = (file: string) => {
 						addToGlobals(
 							`${node.callee.object.name}.${node.callee.property.name}`,
 						)
+					} else if (node.callee.object.type === 'ArrayExpression') {
+						const arrayMethod = node.callee.property.name
+						const version = finalFeatureVersion(
+							BCD.javascript.builtins.Array[arrayMethod].__compat!.support
+								.nodejs!,
+						)
+						languageFeatures.set(`Array.prototype.${arrayMethod}`, version)
 					}
 				} else if (
 					node.callee.type === 'Identifier' &&
@@ -106,5 +105,5 @@ export const parseGlobals = (file: string) => {
 	// Start traversing from the program node
 	for (const item of program.body) traverse(item)
 
-	return globals
+	return new Map([...globals, ...languageFeatures])
 }
