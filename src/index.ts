@@ -1,21 +1,55 @@
-import { basename } from 'node:path'
-import { parseCode } from './parser/parse'
-import { type DependencyMetadata, getPackageFiles } from './utils/crawl'
+import { readFile } from 'node:fs/promises'
+import path, { basename } from 'node:path'
+import { glob } from 'tinyglobby'
+import { parseCode } from './parser/parse.js'
+import { type DependencyMetadata, getPackageFiles } from './utils/crawl.js'
 
-export const scanFiles = async (deps: DependencyMetadata[]) => {
+export const scanFiles = async (deps: DependencyMetadata[], debug = false) => {
+	const uniqueTokens = new Map<string, Map<string, string>>()
 	for (const dep of deps) {
 		const packageName = basename(dep.pkgDir)
 		const filePaths = getPackageFiles(dep.pkgDir)
-		const uniqueTokens = new Map<string, string>()
+		const uniqueDepTokens = new Map<string, string>()
 		for (const file of filePaths) {
 			const tokens = parseCode(file)
 
 			for (const [feature, compat] of tokens) {
-				uniqueTokens.set(feature, compat)
+				uniqueDepTokens.set(feature, compat)
 			}
 		}
-		for (const [feature, compat] of uniqueTokens) {
-			console.log(packageName, feature, compat)
+		if (debug && uniqueDepTokens.size > 0)
+			console.table(Array.from(uniqueDepTokens.entries()))
+		uniqueTokens.set(packageName, uniqueDepTokens)
+	}
+
+	return uniqueTokens
+}
+
+export const scanSource = async (debug = false) => {
+	const filesField = JSON.parse(
+		await readFile(path.join(process.cwd(), 'package.json'), 'utf-8'),
+	).files
+
+	const files: string[] = []
+
+	for (const path of filesField) {
+		files.push(
+			...(await glob(path, {
+				onlyFiles: true,
+				ignore: ['**/*.js.map', '**/*.d.ts', '**/*.d.ts.map'],
+			})),
+		)
+	}
+
+	const uniqueTokens = new Map<string, string>()
+	for (const file of files) {
+		const tokens = parseCode(file)
+
+		for (const [feature, compat] of tokens) {
+			if (debug) console.log(file, feature, compat)
+			uniqueTokens.set(feature, compat)
 		}
 	}
+
+	return uniqueTokens
 }

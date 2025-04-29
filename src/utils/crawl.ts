@@ -1,13 +1,16 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-type PackageManifest = {
+export type PackageManifest = {
 	name: string
 	version: string
 	dependencies?: Record<string, string>
 	main?: string
 	module?: string
 	files?: string[]
+	engines: {
+		node?: string
+	}
 }
 
 export type DependencyMetadata = {

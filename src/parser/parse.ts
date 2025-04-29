@@ -1,16 +1,84 @@
 import { readFileSync } from 'node:fs'
 import BCD from '@mdn/browser-compat-data' with { type: 'json' }
+import type { Identifier } from '@mdn/browser-compat-data'
 import ASTMetadataInferer from 'ast-metadata-inferer' with { type: 'json' }
-import { type Expression, type Statement, parseSync } from 'oxc-parser'
-import { finalFeatureVersion } from '../utils/bcd'
+import { parseSync } from 'oxc-parser'
+import { finalFeatureVersion } from '../utils/bcd.js'
+
+import type {
+	CatchClause,
+	ClassBody,
+	Declaration,
+	ExportSpecifier,
+	Expression,
+	IdentifierName,
+	ImportDefaultSpecifier,
+	ImportNamespaceSpecifier,
+	ImportSpecifier,
+	JSXAttributeItem,
+	JSXChild,
+	MethodDefinition,
+	ModuleDeclaration,
+	ObjectProperty,
+	Pattern,
+	PrivateIdentifier,
+	Program,
+	PropertyDefinition,
+	SpreadElement,
+	Statement,
+	Super,
+	SwitchCase,
+	TemplateElement,
+	VariableDeclarator,
+} from 'oxc-parser'
+export type Node =
+	| Declaration
+	| VariableDeclarator
+	| Expression
+	| ClassBody
+	| CatchClause
+	| MethodDefinition
+	| ModuleDeclaration
+	| ImportSpecifier
+	| ImportDefaultSpecifier
+	| ImportNamespaceSpecifier
+	| ExportSpecifier
+	| Pattern
+	| PrivateIdentifier
+	| Program
+	| SpreadElement
+	| Statement
+	| Super
+	| SwitchCase
+	| TemplateElement
+	| ObjectProperty
+	| PropertyDefinition
+	| JSXAttributeItem
+	| JSXChild
 
 export const parseCode = (file: string) => {
 	const source = readFileSync(file, 'utf-8')
-	const { program } = parseSync(source)
+	const { program, module } = parseSync(file, source)
 
 	const globals = new Map<string, string>()
 	const languageFeatures = new Map<string, string>()
 	const declaredVariables = new Set<string>()
+	const nodeFeatures = new Map<string, string>()
+
+	if (module.hasModuleSyntax) {
+		languageFeatures.set('ESM', '14.13.1')
+	}
+
+	if (module.staticImports) {
+		for (const { moduleRequest } of module.staticImports) {
+			if (moduleRequest.value.includes('node:')) {
+				nodeFeatures.set(
+					'node: Protocol',
+					module.hasModuleSyntax ? '14.13.1' : '16.0.0',
+				)
+			}
+		}
+	}
 
 	const addToGlobals = (name: string) => {
 		const metadata = (ASTMetadataInferer as any[]).find(
@@ -22,8 +90,67 @@ export const parseCode = (file: string) => {
 		}
 	}
 
-	const traverse = (node: Statement | Expression) => {
+	const traverse = (node: Node) => {
 		switch (node.type) {
+			case 'PrivateIdentifier':
+				languageFeatures.set(
+					node.type,
+					finalFeatureVersion(
+						BCD.javascript.classes.private_class_methods.__compat?.support
+							.nodejs!,
+					),
+				)
+
+				break
+			case 'AwaitExpression': {
+				const version = finalFeatureVersion(
+					BCD.javascript.operators.await.__compat?.support.nodejs!,
+				)
+				languageFeatures.set(node.type, version)
+				traverse(node.argument)
+
+				break
+			}
+			case 'ChainExpression':
+				if (
+					node.expression.type === 'CallExpression' ||
+					node.expression.type === 'MemberExpression'
+				) {
+					if (node.expression.optional) {
+						const version = finalFeatureVersion(
+							BCD.javascript.operators.optional_chaining.__compat?.support
+								.nodejs!,
+						)
+						languageFeatures.set('OptionalChaining', version)
+					}
+				}
+				break
+			case 'TemplateLiteral': {
+				const version = finalFeatureVersion(
+					BCD.javascript.grammar.template_literals.__compat?.support.nodejs!,
+				)
+				languageFeatures.set(node.type, version)
+
+				break
+			}
+			case 'ClassDeclaration': {
+				const version = finalFeatureVersion(
+					(BCD.javascript.classes.constructor as unknown as Identifier).__compat
+						?.support.nodejs!,
+				)
+				languageFeatures.set(node.type, version)
+				traverse(node.body)
+				break
+			}
+			case 'LogicalExpression':
+				if (node.operator === '??') {
+					const version = finalFeatureVersion(
+						BCD.javascript.operators.nullish_coalescing.__compat?.support
+							.nodejs!,
+					)
+					languageFeatures.set('NullishCoalescing', version)
+				}
+				break
 			case 'NewExpression':
 				if (
 					node.callee.type === 'Identifier' &&
@@ -51,16 +178,16 @@ export const parseCode = (file: string) => {
 				}
 				break
 			case 'CallExpression':
-				if (node.callee.type === 'StaticMemberExpression') {
+				if (node.callee.type === 'MemberExpression') {
 					if (
 						node.callee.object.type === 'Identifier' &&
 						!declaredVariables.has(node.callee.object.name)
 					) {
 						addToGlobals(
-							`${node.callee.object.name}.${node.callee.property.name}`,
+							`${node.callee.object.name}.${(node.callee.property as IdentifierName).name}`,
 						)
 					} else if (node.callee.object.type === 'ArrayExpression') {
-						const arrayMethod = node.callee.property.name
+						const arrayMethod = (node.callee.property as IdentifierName).name
 						const version = finalFeatureVersion(
 							BCD.javascript.builtins.Array[arrayMethod].__compat!.support
 								.nodejs!,
@@ -74,7 +201,7 @@ export const parseCode = (file: string) => {
 					addToGlobals(node.callee.name)
 				}
 				break
-			case 'StaticMemberExpression':
+			case 'MemberExpression':
 				if (
 					node.object.type === 'Identifier' &&
 					!declaredVariables.has(node.object.name)
@@ -105,5 +232,5 @@ export const parseCode = (file: string) => {
 	// Start traversing from the program node
 	for (const item of program.body) traverse(item)
 
-	return new Map([...globals, ...languageFeatures])
+	return new Map([...globals, ...languageFeatures, ...nodeFeatures])
 }
