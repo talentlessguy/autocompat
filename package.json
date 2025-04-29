@@ -1,6 +1,7 @@
 {
   "name": "autocompat",
   "type": "module",
+  "bin": "dist/cli.js",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/caniuse-lite": "^1.0.5",

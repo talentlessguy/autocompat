@@ -92,6 +92,25 @@ export const parseCode = (file: string) => {
 
 	const traverse = (node: Node) => {
 		switch (node.type) {
+			case 'ImportDeclaration': {
+				for (const attr of node.attributes) {
+					if (attr.type === 'ImportAttribute') {
+						if (
+							attr.key.type === 'Identifier' &&
+							attr.key.name === 'type' &&
+							attr.value.type === 'Literal' &&
+							attr.value.value === 'json'
+						) {
+							const version = finalFeatureVersion(
+								BCD.javascript.statements.import.import_attributes.__compat
+									.support.nodejs!,
+							)
+							languageFeatures.set(attr.type, version)
+						}
+					}
+				}
+				break
+			}
 			case 'PrivateIdentifier':
 				languageFeatures.set(
 					node.type,
