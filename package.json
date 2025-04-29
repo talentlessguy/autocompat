@@ -2,6 +2,11 @@
   "name": "autocompat",
   "type": "module",
   "bin": "dist/cli.js",
+  "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/talentlessguy/autocompat.git"
+  },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/caniuse-lite": "^1.0.5",
