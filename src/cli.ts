@@ -90,11 +90,6 @@ cli.command(
 			)
 			console.log('Updated package.json')
 		}
-		const { confirm2 } = await prompts({
-			type: 'confirm',
-			name: 'confirm2',
-			message: 'Do you want to run package tests in a recommended version?',
-		})
 	},
 	{
 		default: true,

@@ -27,5 +27,8 @@
   "scripts": {
     "build": "tsc",
     "postbuild": "chmod +x dist/cli.js"
+  },
+  "engines": {
+    "node": ">=15.0.0"
   }
 }
