@@ -67,6 +67,11 @@ cli.command(
 		const recommendedVersion = gt(minSourceVersion, minPackageVersion)
 			? minSourceVersion
 			: minPackageVersion
+
+		if (recommendedVersion === pkgJson?.engines?.node) {
+			console.log('Correct engines.node value already set')
+			return
+		}
 		console.log(
 			`Recommended engines.node value: ${picocolors.bgGreen(`>=${recommendedVersion}`)}`,
 		)
