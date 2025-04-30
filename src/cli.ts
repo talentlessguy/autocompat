@@ -68,7 +68,7 @@ cli.command(
 			? minSourceVersion
 			: minPackageVersion
 
-		if (recommendedVersion === pkgJson?.engines?.node) {
+		if (`>=${recommendedVersion}` === pkgJson?.engines?.node) {
 			console.log('Correct engines.node value already set')
 			return
 		}
