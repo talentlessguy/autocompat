@@ -33,6 +33,8 @@ export const scanSource = async (debug = false) => {
 		await readFile(path.join(process.cwd(), 'package.json'), 'utf-8'),
 	).files
 
+	if (!filesField) throw new Error('Missing "files" field in package.json')
+
 	const files: string[] = []
 
 	for (const path of filesField) {

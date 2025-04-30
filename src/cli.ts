@@ -49,9 +49,10 @@ cli.command(
 		console.log(
 			`${picocolors.gray('Minimum Node.js version for source:')} ${picocolors.green(minSourceVersion)}`,
 		)
-		console.log(
-			`${picocolors.gray('Minimum Node.js version for dependencies:')} ${picocolors.green(minPackageVersion)}`,
-		)
+		if (packageTokens.size > 0)
+			console.log(
+				`${picocolors.gray('Minimum Node.js version for dependencies:')} ${picocolors.green(minPackageVersion)}`,
+			)
 
 		const pkgJson: PackageManifest = JSON.parse(
 			await readFile(packageJsonPath, 'utf-8'),
