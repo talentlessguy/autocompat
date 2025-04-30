@@ -66,7 +66,7 @@ export const parseCode = (file: string) => {
 	const nodeFeatures = new Map<string, string>()
 
 	if (module.hasModuleSyntax) {
-		languageFeatures.set('ESM', '14.13.1')
+		languageFeatures.set('ESM', '12.17.0')
 	}
 
 	if (module.staticImports) {
@@ -78,6 +78,10 @@ export const parseCode = (file: string) => {
 				)
 			}
 		}
+	}
+
+	if (module.dynamicImports) {
+		nodeFeatures.set('Top level await', '13.2.0')
 	}
 
 	const addToGlobals = (name: string) => {
