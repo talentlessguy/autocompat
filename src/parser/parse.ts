@@ -80,8 +80,8 @@ export const parseCode = (file: string) => {
 		}
 	}
 
-	if (module.dynamicImports) {
-		nodeFeatures.set('Top level await', '13.2.0')
+	if (module.dynamicImports.length > 0) {
+		nodeFeatures.set('DynamicImport', '13.2.0')
 	}
 
 	const addToGlobals = (name: string) => {
