@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { isBuiltin } from 'node:module'
 import BCD from '@mdn/browser-compat-data' with { type: 'json' }
 import type { Identifier } from '@mdn/browser-compat-data'
 import ASTMetadataInferer from 'ast-metadata-inferer' with { type: 'json' }
@@ -31,6 +32,7 @@ import type {
 	TemplateElement,
 	VariableDeclarator,
 } from 'oxc-parser'
+import { fetchNodeDoc } from '../utils/node.js'
 export type Node =
 	| Declaration
 	| VariableDeclarator
@@ -56,7 +58,7 @@ export type Node =
 	| JSXAttributeItem
 	| JSXChild
 
-export const parseCode = (file: string) => {
+export const parseCode = async (file: string) => {
 	const source = readFileSync(file, 'utf-8')
 	const { program, module } = parseSync(file, source)
 
@@ -64,18 +66,38 @@ export const parseCode = (file: string) => {
 	const languageFeatures = new Map<string, string>()
 	const declaredVariables = new Set<string>()
 	const nodeFeatures = new Map<string, string>()
+	const nodeAPIs = new Map<string, string>()
 
 	if (module.hasModuleSyntax) {
 		languageFeatures.set('ESM', '12.17.0')
 	}
 
 	if (module.staticImports) {
-		for (const { moduleRequest } of module.staticImports) {
+		for (const { moduleRequest, entries } of module.staticImports) {
+			if (moduleRequest.value.endsWith('fs/promises')) {
+				nodeFeatures.set('fs/promises', '14.0.0')
+			}
 			if (moduleRequest.value.includes('node:')) {
 				nodeFeatures.set(
 					'node: Protocol',
 					module.hasModuleSyntax ? '14.13.1' : '16.0.0',
 				)
+				if (isBuiltin(moduleRequest.value)) {
+					for (const entry of entries) {
+						if (entry.importName.kind === 'Default' || entry.isType) continue
+
+						const version = await fetchNodeDoc(
+							moduleRequest.value,
+							entry.importName.name,
+						)
+
+						if (version)
+							nodeAPIs.set(
+								`${moduleRequest.value.includes('node:') ? moduleRequest.value.slice(5) : moduleRequest.value}.${entry.importName.name}`,
+								version,
+							)
+					}
+				}
 			}
 		}
 	}
@@ -255,5 +277,10 @@ export const parseCode = (file: string) => {
 	// Start traversing from the program node
 	for (const item of program.body) traverse(item)
 
-	return new Map([...globals, ...languageFeatures, ...nodeFeatures])
+	return new Map([
+		...globals,
+		...languageFeatures,
+		...nodeFeatures,
+		...nodeAPIs,
+	])
 }

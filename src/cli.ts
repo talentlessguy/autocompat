@@ -2,7 +2,8 @@
 
 import { readFile } from 'node:fs/promises'
 import { writeFile } from 'node:fs/promises'
-import picocolors from 'picocolors'
+
+import { styleText } from 'node:util'
 import prompts from 'prompts'
 import gt from 'semver/functions/gt.js'
 import { CLI } from 'spektr'
@@ -26,7 +27,7 @@ cli.command(
 		}
 		const dependencyMetadatas = crawlDependencies(packageJsonPath, crawlLimit)
 		console.log(
-			`${picocolors.yellow(dependencyMetadatas.length)} dependencies in total`,
+			`${styleText('yellow', dependencyMetadatas.length.toString())} dependencies in total`,
 		)
 		const packageTokens = await scanFiles(dependencyMetadatas, debug)
 		const sourceTokens = await scanSource(debug)
@@ -47,11 +48,11 @@ cli.command(
 			}
 		}
 		console.log(
-			`${picocolors.gray('Minimum Node.js version for source:')} ${picocolors.green(minSourceVersion)}`,
+			`${styleText('gray', 'Minimum Node.js version for source:')} ${styleText('green', minSourceVersion)}`,
 		)
 		if (packageTokens.size > 0)
 			console.log(
-				`${picocolors.gray('Minimum Node.js version for dependencies:')} ${picocolors.green(minPackageVersion)}`,
+				`${styleText('gray', 'Minimum Node.js version for dependencies:')} ${styleText('green', minPackageVersion)}`,
 			)
 
 		const pkgJson: PackageManifest = JSON.parse(
@@ -60,7 +61,7 @@ cli.command(
 
 		if (pkgJson?.engines?.node) {
 			console.log(
-				`Current engines.node value: ${picocolors.bgCyan(pkgJson.engines.node)}`,
+				`Current engines.node value: ${styleText('bgCyan', pkgJson.engines.node)}`,
 			)
 		}
 
@@ -73,7 +74,7 @@ cli.command(
 			return
 		}
 		console.log(
-			`Recommended engines.node value: ${picocolors.bgGreen(`>=${recommendedVersion}`)}`,
+			`Recommended engines.node value: ${styleText('bgGreen', `>=${recommendedVersion}`)}`,
 		)
 
 		const { confirm } = await prompts({

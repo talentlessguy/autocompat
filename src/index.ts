@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import path, { basename } from 'node:path'
-import picocolors from 'picocolors'
+import { styleText } from 'node:util'
 import { glob } from 'tinyglobby'
 import { parseCode } from './parser/parse.js'
 import { type DependencyMetadata, getPackageFiles } from './utils/crawl.js'
@@ -12,14 +12,14 @@ export const scanFiles = async (deps: DependencyMetadata[], debug = false) => {
 		const filePaths = getPackageFiles(dep.pkgDir)
 		const uniqueDepTokens = new Map<string, string>()
 		for (const file of filePaths) {
-			const tokens = parseCode(file)
+			const tokens = await parseCode(file)
 
 			for (const [feature, compat] of tokens) {
 				uniqueDepTokens.set(feature, compat)
 			}
 		}
 		if (debug && uniqueDepTokens.size > 0) {
-			console.log(picocolors.gray(basename(dep.pkgDir)))
+			console.log(styleText('gray', basename(dep.pkgDir)))
 			console.table(Array.from(uniqueDepTokens.entries()))
 		}
 		uniqueTokens.set(packageName, uniqueDepTokens)
@@ -48,14 +48,14 @@ export const scanSource = async (debug = false) => {
 
 	const uniqueTokens = new Map<string, string>()
 	for (const file of files) {
-		const tokens = parseCode(file)
+		const tokens = await parseCode(file)
 
 		for (const [feature, compat] of tokens) {
 			uniqueTokens.set(feature, compat)
 		}
 
 		if (debug && uniqueTokens.size > 0) {
-			console.log(picocolors.gray(file))
+			console.log(styleText('gray', basename(file)))
 			console.table(Array.from(uniqueTokens.entries()))
 		}
 	}
