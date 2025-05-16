@@ -20,21 +20,17 @@ const lookupModule = (modules: any[], id: string) => {
 
 		if (!introducedIn && 'classes' in module) {
 			for (const className of module.classes) {
-				for (const method of module.classes[className].methods) {
-					if (method.name === id) {
-						introducedIn = method.meta.added.at(-1)
-						break
-					}
+				if (className.name === id) {
+					introducedIn = className.meta.added.at(-1)
+					break
 				}
 			}
 		}
 		if (!introducedIn && 'properties' in module) {
 			for (const prop of module.properties) {
-				for (const method of module.properties[prop].methods) {
-					if (method.name === id) {
-						introducedIn = method.meta.added.at(-1)
-						break
-					}
+				if (prop.name === id) {
+					introducedIn = prop.meta.added.at(-1)
+					break
 				}
 			}
 		}
