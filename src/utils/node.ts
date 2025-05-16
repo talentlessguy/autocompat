@@ -39,7 +39,7 @@ const lookupModule = (modules: any[], id: string) => {
 			}
 		}
 	}
-	return introducedIn
+	if (introducedIn) return introducedIn.slice(1)
 }
 
 export const fetchNodeDoc = (mod: string, id: string): string | undefined => {
