@@ -58,7 +58,7 @@ export type Node =
 	| JSXAttributeItem
 	| JSXChild
 
-export const parseCode = async (file: string) => {
+export const parseCode = (file: string) => {
 	const source = readFileSync(file, 'utf-8')
 	const { program, module } = parseSync(file, source)
 
@@ -67,6 +67,7 @@ export const parseCode = async (file: string) => {
 	const declaredVariables = new Set<string>()
 	const nodeFeatures = new Map<string, string>()
 	const nodeAPIs = new Map<string, string>()
+	const namespaceImports = new Map<string, Set<string>>()
 
 	if (module.hasModuleSyntax) {
 		languageFeatures.set('ESM', '12.17.0')
@@ -85,8 +86,17 @@ export const parseCode = async (file: string) => {
 				if (isBuiltin(moduleRequest.value)) {
 					for (const entry of entries) {
 						if (entry.importName.kind === 'Default' || entry.isType) continue
+						if (entry.importName.kind === 'NamespaceObject') {
+							if (!namespaceImports.has(entry.localName.value)) {
+								namespaceImports.set(entry.localName.value, new Set())
+							}
+							namespaceImports
+								.get(entry.localName.value)!
+								.add(moduleRequest.value)
 
-						const version = await fetchNodeDoc(
+							continue
+						}
+						const version = fetchNodeDoc(
 							moduleRequest.value,
 							entry.importName.name,
 						)
@@ -228,8 +238,16 @@ export const parseCode = async (file: string) => {
 						node.callee.object.type === 'Identifier' &&
 						!declaredVariables.has(node.callee.object.name)
 					) {
+						const calleeName = node.callee.object.name
+						const calleeProperty = node.callee.property
+						const namespaceImport = namespaceImports.get(calleeName)
+						if (namespaceImport) {
+							for (const namespace of namespaceImport.values()) {
+								fetchNodeDoc(namespace, (calleeProperty as IdentifierName).name)
+							}
+						}
 						addToGlobals(
-							`${node.callee.object.name}.${(node.callee.property as IdentifierName).name}`,
+							`${calleeName}.${(calleeProperty as IdentifierName).name}`,
 						)
 					} else if (node.callee.object.type === 'ArrayExpression') {
 						const arrayMethod = (node.callee.property as IdentifierName).name
@@ -246,7 +264,7 @@ export const parseCode = async (file: string) => {
 					addToGlobals(node.callee.name)
 				}
 				break
-			case 'MemberExpression':
+			case 'MemberExpression': {
 				if (
 					node.object.type === 'Identifier' &&
 					!declaredVariables.has(node.object.name)
@@ -260,6 +278,7 @@ export const parseCode = async (file: string) => {
 					addToGlobals(node.property.name)
 				}
 				break
+			}
 			case 'ExpressionStatement':
 				traverse(node.expression)
 				break

@@ -8,27 +8,6 @@
 			"introduced_in": "v0.10.0",
 			"modules": [
 				{
-					"textRaw": "Promise example",
-					"name": "promise_example",
-					"desc": "<p>Promise-based operations return a promise that is fulfilled when the\nasynchronous operation is complete.</p>\n<pre><code class=\"language-mjs\">import { unlink } from 'node:fs/promises';\n\ntry {\n  await unlink('/tmp/hello');\n  console.log('successfully deleted /tmp/hello');\n} catch (error) {\n  console.error('there was an error:', error.message);\n}\n</code></pre>\n<pre><code class=\"language-cjs\">const { unlink } = require('node:fs/promises');\n\n(async function(path) {\n  try {\n    await unlink(path);\n    console.log(`successfully deleted ${path}`);\n  } catch (error) {\n    console.error('there was an error:', error.message);\n  }\n})('/tmp/hello');\n</code></pre>",
-					"type": "module",
-					"displayName": "Promise example"
-				},
-				{
-					"textRaw": "Callback example",
-					"name": "callback_example",
-					"desc": "<p>The callback form takes a completion callback function as its last\nargument and invokes the operation asynchronously. The arguments passed to\nthe completion callback depend on the method, but the first argument is always\nreserved for an exception. If the operation is completed successfully, then\nthe first argument is <code>null</code> or <code>undefined</code>.</p>\n<pre><code class=\"language-mjs\">import { unlink } from 'node:fs';\n\nunlink('/tmp/hello', (err) => {\n  if (err) throw err;\n  console.log('successfully deleted /tmp/hello');\n});\n</code></pre>\n<pre><code class=\"language-cjs\">const { unlink } = require('node:fs');\n\nunlink('/tmp/hello', (err) => {\n  if (err) throw err;\n  console.log('successfully deleted /tmp/hello');\n});\n</code></pre>\n<p>The callback-based versions of the <code>node:fs</code> module APIs are preferable over\nthe use of the promise APIs when maximal performance (both in terms of\nexecution time and memory allocation) is required.</p>",
-					"type": "module",
-					"displayName": "Callback example"
-				},
-				{
-					"textRaw": "Synchronous example",
-					"name": "synchronous_example",
-					"desc": "<p>The synchronous APIs block the Node.js event loop and further JavaScript\nexecution until the operation is complete. Exceptions are thrown immediately\nand can be handled using <code>try…catch</code>, or can be allowed to bubble up.</p>\n<pre><code class=\"language-mjs\">import { unlinkSync } from 'node:fs';\n\ntry {\n  unlinkSync('/tmp/hello');\n  console.log('successfully deleted /tmp/hello');\n} catch (err) {\n  // handle the error\n}\n</code></pre>\n<pre><code class=\"language-cjs\">const { unlinkSync } = require('node:fs');\n\ntry {\n  unlinkSync('/tmp/hello');\n  console.log('successfully deleted /tmp/hello');\n} catch (err) {\n  // handle the error\n}\n</code></pre>",
-					"type": "module",
-					"displayName": "Synchronous example"
-				},
-				{
 					"textRaw": "Promises API",
 					"name": "promises_api",
 					"meta": {
@@ -10523,92 +10502,6 @@
 					],
 					"type": "module",
 					"displayName": "Common Objects"
-				},
-				{
-					"textRaw": "Notes",
-					"name": "notes",
-					"modules": [
-						{
-							"textRaw": "Ordering of callback and promise-based operations",
-							"name": "ordering_of_callback_and_promise-based_operations",
-							"desc": "<p>Because they are executed asynchronously by the underlying thread pool,\nthere is no guaranteed ordering when using either the callback or\npromise-based methods.</p>\n<p>For example, the following is prone to error because the <code>fs.stat()</code>\noperation might complete before the <code>fs.rename()</code> operation:</p>\n<pre><code class=\"language-js\">const fs = require('node:fs');\n\nfs.rename('/tmp/hello', '/tmp/world', (err) => {\n  if (err) throw err;\n  console.log('renamed complete');\n});\nfs.stat('/tmp/world', (err, stats) => {\n  if (err) throw err;\n  console.log(`stats: ${JSON.stringify(stats)}`);\n});\n</code></pre>\n<p>It is important to correctly order the operations by awaiting the results\nof one before invoking the other:</p>\n<pre><code class=\"language-mjs\">import { rename, stat } from 'node:fs/promises';\n\nconst oldPath = '/tmp/hello';\nconst newPath = '/tmp/world';\n\ntry {\n  await rename(oldPath, newPath);\n  const stats = await stat(newPath);\n  console.log(`stats: ${JSON.stringify(stats)}`);\n} catch (error) {\n  console.error('there was an error:', error.message);\n}\n</code></pre>\n<pre><code class=\"language-cjs\">const { rename, stat } = require('node:fs/promises');\n\n(async function(oldPath, newPath) {\n  try {\n    await rename(oldPath, newPath);\n    const stats = await stat(newPath);\n    console.log(`stats: ${JSON.stringify(stats)}`);\n  } catch (error) {\n    console.error('there was an error:', error.message);\n  }\n})('/tmp/hello', '/tmp/world');\n</code></pre>\n<p>Or, when using the callback APIs, move the <code>fs.stat()</code> call into the callback\nof the <code>fs.rename()</code> operation:</p>\n<pre><code class=\"language-mjs\">import { rename, stat } from 'node:fs';\n\nrename('/tmp/hello', '/tmp/world', (err) => {\n  if (err) throw err;\n  stat('/tmp/world', (err, stats) => {\n    if (err) throw err;\n    console.log(`stats: ${JSON.stringify(stats)}`);\n  });\n});\n</code></pre>\n<pre><code class=\"language-cjs\">const { rename, stat } = require('node:fs/promises');\n\nrename('/tmp/hello', '/tmp/world', (err) => {\n  if (err) throw err;\n  stat('/tmp/world', (err, stats) => {\n    if (err) throw err;\n    console.log(`stats: ${JSON.stringify(stats)}`);\n  });\n});\n</code></pre>",
-							"type": "module",
-							"displayName": "Ordering of callback and promise-based operations"
-						},
-						{
-							"textRaw": "File paths",
-							"name": "file_paths",
-							"desc": "<p>Most <code>fs</code> operations accept file paths that may be specified in the form of\na string, a <a href=\"buffer.html#class-buffer\" class=\"type\">&lt;Buffer&gt;</a>, or a <a href=\"url.html#the-whatwg-url-api\" class=\"type\">&lt;URL&gt;</a> object using the <code>file:</code> protocol.</p>",
-							"modules": [
-								{
-									"textRaw": "String paths",
-									"name": "string_paths",
-									"desc": "<p>String paths are interpreted as UTF-8 character sequences identifying\nthe absolute or relative filename. Relative paths will be resolved relative\nto the current working directory as determined by calling <code>process.cwd()</code>.</p>\n<p>Example using an absolute path on POSIX:</p>\n<pre><code class=\"language-mjs\">import { open } from 'node:fs/promises';\n\nlet fd;\ntry {\n  fd = await open('/open/some/file.txt', 'r');\n  // Do something with the file\n} finally {\n  await fd?.close();\n}\n</code></pre>\n<p>Example using a relative path on POSIX (relative to <code>process.cwd()</code>):</p>\n<pre><code class=\"language-mjs\">import { open } from 'node:fs/promises';\n\nlet fd;\ntry {\n  fd = await open('file.txt', 'r');\n  // Do something with the file\n} finally {\n  await fd?.close();\n}\n</code></pre>",
-									"type": "module",
-									"displayName": "String paths"
-								},
-								{
-									"textRaw": "File URL paths",
-									"name": "file_url_paths",
-									"meta": {
-										"added": ["v7.6.0"],
-										"changes": []
-									},
-									"desc": "<p>For most <code>node:fs</code> module functions, the <code>path</code> or <code>filename</code> argument may be\npassed as a <a href=\"url.html#the-whatwg-url-api\" class=\"type\">&lt;URL&gt;</a> object using the <code>file:</code> protocol.</p>\n<pre><code class=\"language-mjs\">import { readFileSync } from 'node:fs';\n\nreadFileSync(new URL('file:///tmp/hello'));\n</code></pre>\n<p><code>file:</code> URLs are always absolute paths.</p>",
-									"modules": [
-										{
-											"textRaw": "Platform-specific considerations",
-											"name": "platform-specific_considerations",
-											"desc": "<p>On Windows, <code>file:</code> <a href=\"url.html#the-whatwg-url-api\" class=\"type\">&lt;URL&gt;</a>s with a host name convert to UNC paths, while <code>file:</code>\n<a href=\"url.html#the-whatwg-url-api\" class=\"type\">&lt;URL&gt;</a>s with drive letters convert to local absolute paths. <code>file:</code> <a href=\"url.html#the-whatwg-url-api\" class=\"type\">&lt;URL&gt;</a>s\nwith no host name and no drive letter will result in an error:</p>\n<pre><code class=\"language-mjs\">import { readFileSync } from 'node:fs';\n// On Windows :\n\n// - WHATWG file URLs with hostname convert to UNC path\n// file://hostname/p/a/t/h/file => \\\\hostname\\p\\a\\t\\h\\file\nreadFileSync(new URL('file://hostname/p/a/t/h/file'));\n\n// - WHATWG file URLs with drive letters convert to absolute path\n// file:///C:/tmp/hello => C:\\tmp\\hello\nreadFileSync(new URL('file:///C:/tmp/hello'));\n\n// - WHATWG file URLs without hostname must have a drive letters\nreadFileSync(new URL('file:///notdriveletter/p/a/t/h/file'));\nreadFileSync(new URL('file:///c/p/a/t/h/file'));\n// TypeError [ERR_INVALID_FILE_URL_PATH]: File URL path must be absolute\n</code></pre>\n<p><code>file:</code> <a href=\"url.html#the-whatwg-url-api\" class=\"type\">&lt;URL&gt;</a>s with drive letters must use <code>:</code> as a separator just after\nthe drive letter. Using another separator will result in an error.</p>\n<p>On all other platforms, <code>file:</code> <a href=\"url.html#the-whatwg-url-api\" class=\"type\">&lt;URL&gt;</a>s with a host name are unsupported and\nwill result in an error:</p>\n<pre><code class=\"language-mjs\">import { readFileSync } from 'node:fs';\n// On other platforms:\n\n// - WHATWG file URLs with hostname are unsupported\n// file://hostname/p/a/t/h/file => throw!\nreadFileSync(new URL('file://hostname/p/a/t/h/file'));\n// TypeError [ERR_INVALID_FILE_URL_PATH]: must be absolute\n\n// - WHATWG file URLs convert to absolute path\n// file:///tmp/hello => /tmp/hello\nreadFileSync(new URL('file:///tmp/hello'));\n</code></pre>\n<p>A <code>file:</code> <a href=\"url.html#the-whatwg-url-api\" class=\"type\">&lt;URL&gt;</a> having encoded slash characters will result in an error on all\nplatforms:</p>\n<pre><code class=\"language-mjs\">import { readFileSync } from 'node:fs';\n\n// On Windows\nreadFileSync(new URL('file:///C:/p/a/t/h/%2F'));\nreadFileSync(new URL('file:///C:/p/a/t/h/%2f'));\n/* TypeError [ERR_INVALID_FILE_URL_PATH]: File URL path must not include encoded\n\\ or / characters */\n\n// On POSIX\nreadFileSync(new URL('file:///p/a/t/h/%2F'));\nreadFileSync(new URL('file:///p/a/t/h/%2f'));\n/* TypeError [ERR_INVALID_FILE_URL_PATH]: File URL path must not include encoded\n/ characters */\n</code></pre>\n<p>On Windows, <code>file:</code> <a href=\"url.html#the-whatwg-url-api\" class=\"type\">&lt;URL&gt;</a>s having encoded backslash will result in an error:</p>\n<pre><code class=\"language-mjs\">import { readFileSync } from 'node:fs';\n\n// On Windows\nreadFileSync(new URL('file:///C:/path/%5C'));\nreadFileSync(new URL('file:///C:/path/%5c'));\n/* TypeError [ERR_INVALID_FILE_URL_PATH]: File URL path must not include encoded\n\\ or / characters */\n</code></pre>",
-											"type": "module",
-											"displayName": "Platform-specific considerations"
-										}
-									],
-									"type": "module",
-									"displayName": "File URL paths"
-								},
-								{
-									"textRaw": "Buffer paths",
-									"name": "buffer_paths",
-									"desc": "<p>Paths specified using a <a href=\"buffer.html#class-buffer\" class=\"type\">&lt;Buffer&gt;</a> are useful primarily on certain POSIX\noperating systems that treat file paths as opaque byte sequences. On such\nsystems, it is possible for a single file path to contain sub-sequences that\nuse multiple character encodings. As with string paths, <a href=\"buffer.html#class-buffer\" class=\"type\">&lt;Buffer&gt;</a> paths may\nbe relative or absolute:</p>\n<p>Example using an absolute path on POSIX:</p>\n<pre><code class=\"language-mjs\">import { open } from 'node:fs/promises';\nimport { Buffer } from 'node:buffer';\n\nlet fd;\ntry {\n  fd = await open(Buffer.from('/open/some/file.txt'), 'r');\n  // Do something with the file\n} finally {\n  await fd?.close();\n}\n</code></pre>",
-									"type": "module",
-									"displayName": "Buffer paths"
-								},
-								{
-									"textRaw": "Per-drive working directories on Windows",
-									"name": "per-drive_working_directories_on_windows",
-									"desc": "<p>On Windows, Node.js follows the concept of per-drive working directory. This\nbehavior can be observed when using a drive path without a backslash. For\nexample <code>fs.readdirSync('C:\\\\')</code> can potentially return a different result than\n<code>fs.readdirSync('C:')</code>. For more information, see\n<a href=\"https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file#fully-qualified-vs-relative-paths\">this MSDN page</a>.</p>",
-									"type": "module",
-									"displayName": "Per-drive working directories on Windows"
-								}
-							],
-							"type": "module",
-							"displayName": "File paths"
-						},
-						{
-							"textRaw": "File descriptors",
-							"name": "file_descriptors",
-							"desc": "<p>On POSIX systems, for every process, the kernel maintains a table of currently\nopen files and resources. Each open file is assigned a simple numeric\nidentifier called a <em>file descriptor</em>. At the system-level, all file system\noperations use these file descriptors to identify and track each specific\nfile. Windows systems use a different but conceptually similar mechanism for\ntracking resources. To simplify things for users, Node.js abstracts away the\ndifferences between operating systems and assigns all open files a numeric file\ndescriptor.</p>\n<p>The callback-based <code>fs.open()</code>, and synchronous <code>fs.openSync()</code> methods open a\nfile and allocate a new file descriptor. Once allocated, the file descriptor may\nbe used to read data from, write data to, or request information about the file.</p>\n<p>Operating systems limit the number of file descriptors that may be open\nat any given time so it is critical to close the descriptor when operations\nare completed. Failure to do so will result in a memory leak that will\neventually cause an application to crash.</p>\n<pre><code class=\"language-mjs\">import { open, close, fstat } from 'node:fs';\n\nfunction closeFd(fd) {\n  close(fd, (err) => {\n    if (err) throw err;\n  });\n}\n\nopen('/open/some/file.txt', 'r', (err, fd) => {\n  if (err) throw err;\n  try {\n    fstat(fd, (err, stat) => {\n      if (err) {\n        closeFd(fd);\n        throw err;\n      }\n\n      // use stat\n\n      closeFd(fd);\n    });\n  } catch (err) {\n    closeFd(fd);\n    throw err;\n  }\n});\n</code></pre>\n<p>The promise-based APIs use a <a href=\"fs.html#class-filehandle\" class=\"type\">&lt;FileHandle&gt;</a> object in place of the numeric\nfile descriptor. These objects are better managed by the system to ensure\nthat resources are not leaked. However, it is still required that they are\nclosed when operations are completed:</p>\n<pre><code class=\"language-mjs\">import { open } from 'node:fs/promises';\n\nlet file;\ntry {\n  file = await open('/open/some/file.txt', 'r');\n  const stat = await file.stat();\n  // use stat\n} finally {\n  await file.close();\n}\n</code></pre>",
-							"type": "module",
-							"displayName": "File descriptors"
-						},
-						{
-							"textRaw": "Threadpool usage",
-							"name": "threadpool_usage",
-							"desc": "<p>All callback and promise-based file system APIs (with the exception of\n<code>fs.FSWatcher()</code>) use libuv's threadpool. This can have surprising and negative\nperformance implications for some applications. See the\n<a href=\"cli.html#uv_threadpool_sizesize\"><code>UV_THREADPOOL_SIZE</code></a> documentation for more information.</p>",
-							"type": "module",
-							"displayName": "Threadpool usage"
-						},
-						{
-							"textRaw": "File system flags",
-							"name": "file_system_flags",
-							"desc": "<p>The following flags are available wherever the <code>flag</code> option takes a\nstring.</p>\n<ul>\n<li>\n<p><code>'a'</code>: Open file for appending.\nThe file is created if it does not exist.</p>\n</li>\n<li>\n<p><code>'ax'</code>: Like <code>'a'</code> but fails if the path exists.</p>\n</li>\n<li>\n<p><code>'a+'</code>: Open file for reading and appending.\nThe file is created if it does not exist.</p>\n</li>\n<li>\n<p><code>'ax+'</code>: Like <code>'a+'</code> but fails if the path exists.</p>\n</li>\n<li>\n<p><code>'as'</code>: Open file for appending in synchronous mode.\nThe file is created if it does not exist.</p>\n</li>\n<li>\n<p><code>'as+'</code>: Open file for reading and appending in synchronous mode.\nThe file is created if it does not exist.</p>\n</li>\n<li>\n<p><code>'r'</code>: Open file for reading.\nAn exception occurs if the file does not exist.</p>\n</li>\n<li>\n<p><code>'rs'</code>: Open file for reading in synchronous mode.\nAn exception occurs if the file does not exist.</p>\n</li>\n<li>\n<p><code>'r+'</code>: Open file for reading and writing.\nAn exception occurs if the file does not exist.</p>\n</li>\n<li>\n<p><code>'rs+'</code>: Open file for reading and writing in synchronous mode. Instructs\nthe operating system to bypass the local file system cache.</p>\n<p>This is primarily useful for opening files on NFS mounts as it allows\nskipping the potentially stale local cache. It has a very real impact on\nI/O performance so using this flag is not recommended unless it is needed.</p>\n<p>This doesn't turn <code>fs.open()</code> or <code>fsPromises.open()</code> into a synchronous\nblocking call. If synchronous operation is desired, something like\n<code>fs.openSync()</code> should be used.</p>\n</li>\n<li>\n<p><code>'w'</code>: Open file for writing.\nThe file is created (if it does not exist) or truncated (if it exists).</p>\n</li>\n<li>\n<p><code>'wx'</code>: Like <code>'w'</code> but fails if the path exists.</p>\n</li>\n<li>\n<p><code>'w+'</code>: Open file for reading and writing.\nThe file is created (if it does not exist) or truncated (if it exists).</p>\n</li>\n<li>\n<p><code>'wx+'</code>: Like <code>'w+'</code> but fails if the path exists.</p>\n</li>\n</ul>\n<p><code>flag</code> can also be a number as documented by <a href=\"http://man7.org/linux/man-pages/man2/open.2.html\"><code>open(2)</code></a>; commonly used constants\nare available from <code>fs.constants</code>. On Windows, flags are translated to\ntheir equivalent ones where applicable, e.g. <code>O_WRONLY</code> to <code>FILE_GENERIC_WRITE</code>,\nor <code>O_EXCL|O_CREAT</code> to <code>CREATE_NEW</code>, as accepted by <code>CreateFileW</code>.</p>\n<p>The exclusive flag <code>'x'</code> (<code>O_EXCL</code> flag in <a href=\"http://man7.org/linux/man-pages/man2/open.2.html\"><code>open(2)</code></a>) causes the operation to\nreturn an error if the path already exists. On POSIX, if the path is a symbolic\nlink, using <code>O_EXCL</code> returns an error even if the link is to a path that does\nnot exist. The exclusive flag might not work with network file systems.</p>\n<p>On Linux, positional writes don't work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>\n<p>Modifying a file rather than replacing it may require the <code>flag</code> option to be\nset to <code>'r+'</code> rather than the default <code>'w'</code>.</p>\n<p>The behavior of some flags are platform-specific. As such, opening a directory\non macOS and Linux with the <code>'a+'</code> flag, as in the example below, will return an\nerror. In contrast, on Windows and FreeBSD, a file descriptor or a <code>FileHandle</code>\nwill be returned.</p>\n<pre><code class=\"language-js\">// macOS and Linux\nfs.open('&#x3C;directory>', 'a+', (err, fd) => {\n  // => [Error: EISDIR: illegal operation on a directory, open &#x3C;directory>]\n});\n\n// Windows and FreeBSD\nfs.open('&#x3C;directory>', 'a+', (err, fd) => {\n  // => null, &#x3C;fd>\n});\n</code></pre>\n<p>On Windows, opening an existing hidden file using the <code>'w'</code> flag (either\nthrough <code>fs.open()</code>, <code>fs.writeFile()</code>, or <code>fsPromises.open()</code>) will fail with\n<code>EPERM</code>. Existing hidden files can be opened for writing with the <code>'r+'</code> flag.</p>\n<p>A call to <code>fs.ftruncate()</code> or <code>filehandle.truncate()</code> can be used to reset\nthe file contents.</p>",
-							"type": "module",
-							"displayName": "File system flags"
-						}
-					],
-					"type": "module",
-					"displayName": "Notes"
 				}
 			],
 			"type": "module",

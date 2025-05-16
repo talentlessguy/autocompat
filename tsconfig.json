@@ -4,7 +4,8 @@
 		"module": "NodeNext",
 		"moduleResolution": "nodenext",
 		"outDir": "dist",
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
+		"incremental": true
 	},
 	"include": ["src"]
 }

@@ -2,48 +2,11 @@ import fs from './fs.json' with { type: 'json' }
 import path from './path.json' with { type: 'json' }
 import util from './util.json' with { type: 'json' }
 
-const supportedModules = ['fs', 'fs/promises', 'fs', 'path', 'util']
-
 const docs = { fs, path, util }
+const supportedModules = Object.keys(docs) as (keyof typeof docs)[]
 
-export const fetchNodeDoc = async (
-	mod: string,
-	id: string,
-): Promise<string | undefined> => {
-	if (mod.includes('node:')) {
-		mod = mod.slice(5)
-	}
-	if (mod.includes('/')) {
-		mod = mod.slice(0, mod.indexOf('/'))
-	}
-	if (!supportedModules.includes(mod)) return undefined
-
-	const moduleIndices: number[] = []
-
-	if (mod.startsWith('fs')) {
-		moduleIndices.push(6)
-
-		if (mod === 'fs/promises') {
-			moduleIndices.push(3)
-		} else {
-			moduleIndices.push(4)
-			if (id.includes('Sync')) moduleIndices.push(5)
-		}
-	} else {
-		moduleIndices.push(0)
-	}
-
-	const json = docs[mod]
-
-	if (!json) console.log(mod)
-
+const lookupModule = (modules: any[], id: string) => {
 	let introducedIn: string | undefined
-
-	const modules = []
-
-	for (const moduleIndex of moduleIndices) {
-		if (json.modules[moduleIndex]) modules.push(json.modules[moduleIndex])
-	}
 
 	for (const module of modules) {
 		if ('methods' in module) {
@@ -76,6 +39,27 @@ export const fetchNodeDoc = async (
 			}
 		}
 	}
+	return introducedIn
+}
 
-	if (typeof introducedIn === 'string') return introducedIn.slice(1)
+export const fetchNodeDoc = (mod: string, id: string): string | undefined => {
+	if (mod.includes('node:')) {
+		mod = mod.slice(5)
+	}
+
+	if (mod.includes('fs')) {
+		const { modules } = docs.fs.modules[0]
+		if (mod === 'fs/promises') {
+			return lookupModule([modules[0], modules[3]], id)
+		}
+		if (mod === 'fs') {
+			if (id.includes('Sync')) {
+				return lookupModule([modules[2], modules[3]], id)
+			}
+			return lookupModule([modules[1], modules[3]], id)
+		}
+	} else if (supportedModules.includes(mod as keyof typeof docs)) {
+		const { modules } = docs[mod as keyof typeof docs]
+		return lookupModule(modules, id)
+	}
 }
