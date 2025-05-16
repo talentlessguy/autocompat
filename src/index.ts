@@ -19,7 +19,7 @@ export const scanFiles = async (deps: DependencyMetadata[], debug = false) => {
 			}
 		}
 		if (debug && uniqueDepTokens.size > 0) {
-			console.log(styleText('gray', basename(dep.pkgDir)))
+			console.log(styleText('gray', path.relative(process.cwd(), dep.pkgDir)))
 			console.table(Array.from(uniqueDepTokens.entries()))
 		}
 		uniqueTokens.set(packageName, uniqueDepTokens)
@@ -41,7 +41,13 @@ export const scanSource = async (debug = false) => {
 		files.push(
 			...(await glob(path, {
 				onlyFiles: true,
-				ignore: ['**/*.js.map', '**/*.d.ts', '**/*.d.ts.map'],
+				ignore: [
+					'**/*.js.map',
+					'**/*.d.ts',
+					'**/*.d.ts.map',
+					'**/*.json',
+					'**/*.md',
+				],
 			})),
 		)
 	}
@@ -55,7 +61,7 @@ export const scanSource = async (debug = false) => {
 		}
 
 		if (debug && uniqueTokens.size > 0) {
-			console.log(styleText('gray', basename(file)))
+			console.log(styleText('gray', path.relative(process.cwd(), file)))
 			console.table(Array.from(uniqueTokens.entries()))
 		}
 	}
