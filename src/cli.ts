@@ -16,8 +16,9 @@ import {
 
 const cli = new CLI({ name: 'autocompat' })
 
+cli.help()
 cli.command(
-	async (_, { limit, debug }) => {
+	async (_, { limit, debug, ci }) => {
 		const packageJsonPath = findClosestPkgJsonPath(process.cwd())
 		console.log(`Found package.json at ${packageJsonPath}`)
 		const crawlLimit = limit ? Number.parseInt(limit) : Number.POSITIVE_INFINITY
@@ -77,27 +78,27 @@ cli.command(
 			`Recommended engines.node value: ${styleText('bgGreen', `>=${recommendedVersion}`)}`,
 		)
 
-		const { confirm } = await prompts({
-			type: 'confirm',
-			name: 'confirm',
-			message: 'Do you want to update package.json with a recommended version?',
-		})
-		if (confirm) {
-			const pkgJson: PackageManifest = JSON.parse(
-				await readFile(packageJsonPath, 'utf-8'),
-			)
-			await writeFile(
-				packageJsonPath,
-				JSON.stringify(
-					{
-						...pkgJson,
-						engines: { ...pkgJson.engines, node: `>=${recommendedVersion}` },
-					},
-					null,
-					2,
-				),
-			)
-			console.log('Updated package.json')
+		if (!ci) {
+			const { confirm } = await prompts({
+				type: 'confirm',
+				name: 'confirm',
+				message:
+					'Do you want to update package.json with a recommended version?',
+			})
+			if (confirm) {
+				await writeFile(
+					packageJsonPath,
+					JSON.stringify(
+						{
+							...pkgJson,
+							engines: { ...pkgJson.engines, node: `>=${recommendedVersion}` },
+						},
+						null,
+						2,
+					),
+				)
+				console.log('Updated package.json')
+			}
 		}
 	},
 	{
@@ -113,6 +114,12 @@ cli.command(
 				name: 'debug',
 				type: 'boolean',
 				description: 'Enable debug mode',
+				required: false,
+			},
+			{
+				name: 'ci',
+				type: 'boolean',
+				description: 'Enable CI mode',
 				required: false,
 			},
 		] as const,

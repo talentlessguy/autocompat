@@ -1,7 +1,11 @@
 # autocompat
 
-Automatically check runtime compatibility and configure package manifest and tooling based on that. ES6+.
+Automatically check runtime compatibility and configure package manifest based on the results. Proof of concept, not ready for production use.
 
-## How it works
+## Usage
 
-All files in the project, including dependencies, are scanned for globals. Afterwards, they're compared against a node.green dataset.
+```bash
+pnpx autocompat
+bunx autocompat
+```
+

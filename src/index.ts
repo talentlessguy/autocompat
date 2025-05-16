@@ -12,7 +12,7 @@ export const scanFiles = async (deps: DependencyMetadata[], debug = false) => {
 		const filePaths = getPackageFiles(dep.pkgDir)
 		const uniqueDepTokens = new Map<string, string>()
 		for (const file of filePaths) {
-			const tokens = await parseCode(file)
+			const tokens = parseCode(file)
 
 			for (const [feature, compat] of tokens) {
 				uniqueDepTokens.set(feature, compat)
@@ -48,7 +48,7 @@ export const scanSource = async (debug = false) => {
 
 	const uniqueTokens = new Map<string, string>()
 	for (const file of files) {
-		const tokens = await parseCode(file)
+		const tokens = parseCode(file)
 
 		for (const [feature, compat] of tokens) {
 			uniqueTokens.set(feature, compat)
