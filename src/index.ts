@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises'
-import path, { basename } from 'node:path'
+import path, { basename, extname } from 'node:path'
 import { styleText } from 'node:util'
 import { glob } from 'tinyglobby'
 import { parseCode } from './parser/parse.js'
@@ -35,7 +35,7 @@ export const scanSource = async (debug = false) => {
 
 	if (!filesField) throw new Error('Missing "files" field in package.json')
 
-	const files: string[] = []
+	let files: string[] = []
 
 	for (const path of filesField) {
 		files.push(
@@ -51,6 +51,8 @@ export const scanSource = async (debug = false) => {
 			})),
 		)
 	}
+
+	files = files.filter((m) => extname(m).includes('js'))
 
 	const uniqueTokens = new Map<string, string>()
 	for (const file of files) {
