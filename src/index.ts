@@ -46,6 +46,7 @@ export const scanSource = async (debug = false) => {
 					'**/*.d.ts',
 					'**/*.d.ts.map',
 					'**/*.json',
+					'**/*.test.*',
 					'**/*.md',
 				],
 			})),
